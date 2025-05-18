@@ -1,11 +1,16 @@
 from rest_framework import serializers
 from .models import Order, OrderItem, Product
+from phonenumber_field.phonenumber import to_python
+from phonenumber_field.validators import validate_international_phonenumber
+from django.core.exceptions import ValidationError
 
 class OrderItemSerializer(serializers.Serializer):
     product = serializers.CharField()
     quantity = serializers.CharField()
 
     def validate_product(self, value):
+        if value in [None, '']:
+            raise serializers.ValidationError("ID продукта должен быть числом")
         try:
             int_value = int(value)
         except (ValueError, TypeError):
@@ -15,6 +20,8 @@ class OrderItemSerializer(serializers.Serializer):
         return int_value
 
     def validate_quantity(self, value):
+        if value in [None, '']:
+            raise serializers.ValidationError("Количество должно быть числом")
         try:
             int_value = int(value)
         except (ValueError, TypeError):
@@ -24,11 +31,42 @@ class OrderItemSerializer(serializers.Serializer):
         return int_value
 
 class OrderSerializer(serializers.ModelSerializer):
+    firstname = serializers.CharField(required=True, allow_blank=False)
+    lastname = serializers.CharField(required=True, allow_blank=True)
+    phonenumber = serializers.CharField(required=True, allow_blank=False)
+    address = serializers.CharField(required=True, allow_blank=False)
     products = OrderItemSerializer(many=True, write_only=True)
 
     class Meta:
         model = Order
         fields = ['firstname', 'lastname', 'phonenumber', 'address', 'products']
+
+    def validate_firstname(self, value):
+        if value is None or not isinstance(value, str) or not value.strip():
+            raise serializers.ValidationError("Это поле не может быть пустым.")
+        return value
+
+    def validate_lastname(self, value):
+        if value is None:
+            raise serializers.ValidationError("Это поле не может быть пустым.")
+        if not isinstance(value, str):
+            raise serializers.ValidationError("Not a valid string.")
+        return value
+
+    def validate_phonenumber(self, value):
+        if value is None or not isinstance(value, str) or not value.strip():
+            raise serializers.ValidationError("Это поле не может быть пустым.")
+        try:
+            ph = to_python(value)
+            validate_international_phonenumber(ph)
+        except ValidationError:
+            raise serializers.ValidationError("Введен некорректный номер телефона.")
+        return value
+
+    def validate_address(self, value):
+        if value is None or not isinstance(value, str) or not value.strip():
+            raise serializers.ValidationError("Это поле не может быть пустым.")
+        return value
 
     def validate_products(self, value):
         if value is None:
