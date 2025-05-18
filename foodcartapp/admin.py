@@ -3,16 +3,18 @@ from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.utils.html import format_html
 
-from .models import Product
-from .models import ProductCategory
-from .models import Restaurant
-from .models import RestaurantMenuItem
-
+from .models import (
+    Product, ProductCategory, Restaurant, RestaurantMenuItem,
+    Order, OrderItem,
+)
 
 class RestaurantMenuItemInline(admin.TabularInline):
     model = RestaurantMenuItem
     extra = 0
 
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
 
 @admin.register(Restaurant)
 class RestaurantAdmin(admin.ModelAdmin):
@@ -30,7 +32,6 @@ class RestaurantAdmin(admin.ModelAdmin):
         RestaurantMenuItemInline
     ]
 
-
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = [
@@ -46,12 +47,9 @@ class ProductAdmin(admin.ModelAdmin):
         'category',
     ]
     search_fields = [
-        # FIXME SQLite can not convert letter case for cyrillic words properly, so search will be buggy.
-        # Migration to PostgreSQL is necessary
         'name',
         'category__name',
     ]
-
     inlines = [
         RestaurantMenuItemInline
     ]
@@ -75,18 +73,15 @@ class ProductAdmin(admin.ModelAdmin):
             ],
         }),
     )
-
     readonly_fields = [
         'get_image_preview',
     ]
-
     class Media:
         css = {
             "all": (
                 static("admin/foodcartapp.css")
             )
         }
-
     def get_image_preview(self, obj):
         if not obj.image:
             return 'выберите картинку'
@@ -102,5 +97,16 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProductCategory)
-class ProductAdmin(admin.ModelAdmin):
+class ProductCategoryAdmin(admin.ModelAdmin):
     pass
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ['firstname', 'lastname', 'phonenumber', 'address', 'created_at']
+    search_fields = ['firstname', 'lastname', 'phonenumber', 'address']
+    inlines = [OrderItemInline]
+
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ['order', 'product', 'quantity']
+    search_fields = ['order__firstname', 'order__lastname', 'product__name']
