@@ -4,7 +4,15 @@ from phonenumber_field.phonenumber import to_python
 from phonenumber_field.validators import validate_international_phonenumber
 from django.core.exceptions import ValidationError
 
-class OrderItemSerializer(serializers.Serializer):
+class OrderItemReadSerializer(serializers.ModelSerializer):
+    product = serializers.PrimaryKeyRelatedField(read_only=True)
+    product_name = serializers.CharField(source='product.name', read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ['product', 'product_name', 'quantity']
+
+class OrderItemWriteSerializer(serializers.Serializer):
     product = serializers.CharField()
     quantity = serializers.CharField()
 
@@ -35,11 +43,12 @@ class OrderSerializer(serializers.ModelSerializer):
     lastname = serializers.CharField(required=True, allow_blank=True)
     phonenumber = serializers.CharField(required=True, allow_blank=False)
     address = serializers.CharField(required=True, allow_blank=False)
-    products = OrderItemSerializer(many=True, write_only=True)
+    products = OrderItemWriteSerializer(many=True, write_only=True)
+    items = OrderItemReadSerializer(many=True, read_only=True)
 
     class Meta:
         model = Order
-        fields = ['firstname', 'lastname', 'phonenumber', 'address', 'products']
+        fields = ['id', 'firstname', 'lastname', 'phonenumber', 'address', 'items', 'products']
 
     def validate_firstname(self, value):
         if value is None or not isinstance(value, str) or not value.strip():
