@@ -3,6 +3,7 @@ from .models import Order, OrderItem, Product
 from phonenumber_field.phonenumber import to_python
 from phonenumber_field.validators import validate_international_phonenumber
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 class OrderItemReadSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -10,7 +11,7 @@ class OrderItemReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ['product', 'product_name', 'quantity', 'price'] 
+        fields = ['product', 'product_name', 'quantity', 'price']
 
 class OrderItemWriteSerializer(serializers.Serializer):
     product = serializers.CharField()
@@ -90,17 +91,18 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         products_data = validated_data.pop('products')
-        order = Order.objects.create(**validated_data)
-        items = []
-        for prod in products_data:
-            product_obj = Product.objects.get(pk=prod['product'])
-            items.append(
-                OrderItem(
-                    order=order,
-                    product=product_obj,
-                    quantity=prod['quantity'],
-                    price=product_obj.price 
+        with transaction.atomic():
+            order = Order.objects.create(**validated_data)
+            items = []
+            for prod in products_data:
+                product_obj = Product.objects.get(pk=prod['product'])
+                items.append(
+                    OrderItem(
+                        order=order,
+                        product=product_obj,
+                        quantity=prod['quantity'],
+                        price=product_obj.price
+                    )
                 )
-            )
-        OrderItem.objects.bulk_create(items)
+            OrderItem.objects.bulk_create(items)
         return order
