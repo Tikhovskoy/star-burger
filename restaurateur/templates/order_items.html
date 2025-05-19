@@ -29,7 +29,7 @@
         <td>
             <ul>
                 {% for item in order.items.all %}
-                    <li>{{ item.product.name }} ×{{ item.quantity }}</li>
+                    <li>{{ item.product.name }} ×{{ item.quantity }} по {{ item.price }} ₽</li>
                 {% endfor %}
             </ul>
         </td>

@@ -4,20 +4,9 @@ from phonenumber_field.modelfields import PhoneNumberField
 from django.db.models import F, Sum, ExpressionWrapper, DecimalField
 
 class Restaurant(models.Model):
-    name = models.CharField(
-        'название',
-        max_length=50
-    )
-    address = models.CharField(
-        'адрес',
-        max_length=100,
-        blank=True,
-    )
-    contact_phone = models.CharField(
-        'контактный телефон',
-        max_length=50,
-        blank=True,
-    )
+    name = models.CharField('название', max_length=50)
+    address = models.CharField('адрес', max_length=100, blank=True)
+    contact_phone = models.CharField('контактный телефон', max_length=50, blank=True)
 
     class Meta:
         verbose_name = 'ресторан'
@@ -36,10 +25,7 @@ class ProductQuerySet(models.QuerySet):
         return self.filter(pk__in=products)
 
 class ProductCategory(models.Model):
-    name = models.CharField(
-        'название',
-        max_length=50
-    )
+    name = models.CharField('название', max_length=50)
 
     class Meta:
         verbose_name = 'категория'
@@ -49,10 +35,7 @@ class ProductCategory(models.Model):
         return self.name
 
 class Product(models.Model):
-    name = models.CharField(
-        'название',
-        max_length=50
-    )
+    name = models.CharField('название', max_length=50)
     category = models.ForeignKey(
         ProductCategory,
         verbose_name='категория',
@@ -67,19 +50,13 @@ class Product(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0)]
     )
-    image = models.ImageField(
-        'картинка'
-    )
+    image = models.ImageField('картинка')
     special_status = models.BooleanField(
         'спец.предложение',
         default=False,
         db_index=True,
     )
-    description = models.TextField(
-        'описание',
-        max_length=200,
-        blank=True,
-    )
+    description = models.TextField('описание', max_length=200, blank=True)
 
     objects = ProductQuerySet.as_manager()
 
@@ -103,11 +80,7 @@ class RestaurantMenuItem(models.Model):
         related_name='menu_items',
         verbose_name='продукт',
     )
-    availability = models.BooleanField(
-        'в продаже',
-        default=True,
-        db_index=True
-    )
+    availability = models.BooleanField('в продаже', default=True, db_index=True)
 
     class Meta:
         verbose_name = 'пункт меню ресторана'
@@ -124,7 +97,7 @@ class OrderQuerySet(models.QuerySet):
         return self.annotate(
             total_price=Sum(
                 ExpressionWrapper(
-                    F('items__product__price') * F('items__quantity'),
+                    F('items__price') * F('items__quantity'),
                     output_field=DecimalField()
                 )
             )
@@ -151,10 +124,11 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, verbose_name='заказ', related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, verbose_name='товар', related_name='order_items', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField('количество', default=1, validators=[MinValueValidator(1)])
+    price = models.DecimalField('цена за единицу', max_digits=8, decimal_places=2, validators=[MinValueValidator(0)])
 
     class Meta:
         verbose_name = 'позиция заказа'
         verbose_name_plural = 'позиции заказа'
 
     def __str__(self):
-        return f"{self.product.name} x {self.quantity}"
+        return f"{self.product.name} x {self.quantity} по {self.price}"

@@ -10,7 +10,7 @@ class OrderItemReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ['product', 'product_name', 'quantity']
+        fields = ['product', 'product_name', 'quantity', 'price'] 
 
 class OrderItemWriteSerializer(serializers.Serializer):
     product = serializers.CharField()
@@ -91,12 +91,16 @@ class OrderSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         products_data = validated_data.pop('products')
         order = Order.objects.create(**validated_data)
-        items = [
-            OrderItem(
-                order=order,
-                product=Product.objects.get(pk=prod['product']),
-                quantity=prod['quantity']
-            ) for prod in products_data
-        ]
+        items = []
+        for prod in products_data:
+            product_obj = Product.objects.get(pk=prod['product'])
+            items.append(
+                OrderItem(
+                    order=order,
+                    product=product_obj,
+                    quantity=prod['quantity'],
+                    price=product_obj.price 
+                )
+            )
         OrderItem.objects.bulk_create(items)
         return order
