@@ -102,10 +102,11 @@ class ProductCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'firstname', 'lastname', 'phonenumber', 'address', 'status', 'created_at']
+    list_display = ['id', 'firstname', 'lastname', 'phonenumber', 'address', 'status', 'created_at', 'called_at', 'delivered_at']
     search_fields = ['firstname', 'lastname', 'phonenumber', 'address']
     list_filter = ['status']
     inlines = [OrderItemInline]
+    readonly_fields = ['created_at']
 
     def response_change(self, request, obj):
         next_url = request.GET.get('next')
