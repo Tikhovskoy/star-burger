@@ -19,6 +19,7 @@
       <th>Адрес доставки</th>
       <th>Товары</th>
       <th>Сумма</th>
+      <th>Действия</th> 
     </tr>
     {% for order in orders %}
       <tr>
@@ -35,6 +36,9 @@
         </td>
         <td>
             <strong>{{ order.total_price }} ₽</strong>
+        </td>
+        <td>
+            <a href="{% url 'admin:foodcartapp_order_change' order.id %}" target="_blank">Редактировать</a>
         </td>
       </tr>
     {% endfor %}
