@@ -13,11 +13,14 @@ from django.conf import settings
 
 from foodcartapp.models import Product, Restaurant, Order, OrderItem, RestaurantMenuItem
 
+from locations.models import PlaceCoordinate
+from django.utils import timezone
+from datetime import timedelta
+
 YANDEX_GEOCODER_API_KEY = getattr(settings, "YANDEX_GEOCODER_API_KEY", None)
 YANDEX_GEOCODER_URL = 'https://geocode-maps.yandex.ru/1.x/'
 
 def fetch_coordinates(api_key, address):
-    """Вернуть координаты (lat, lon) или None, если не удалось"""
     params = {
         'apikey': api_key,
         'geocode': address,
@@ -32,6 +35,25 @@ def fetch_coordinates(api_key, address):
         lon, lat = map(float, places[0]['GeoObject']['Point']['pos'].split())
         return lat, lon
     except Exception:
+        return None
+
+def fetch_coordinates_cached(api_key, address):
+    COORD_TTL = timedelta(days=7)
+    try:
+        place = PlaceCoordinate.objects.get(address=address)
+        if place.lat is not None and place.lon is not None and timezone.now() - place.updated_at < COORD_TTL:
+            return (place.lat, place.lon)
+    except PlaceCoordinate.DoesNotExist:
+        place = PlaceCoordinate(address=address)
+
+    coords = fetch_coordinates(api_key, address)
+    if coords:
+        place.lat, place.lon = coords
+        place.save()
+        return coords
+    else:
+        place.lat, place.lon = None, None
+        place.save()
         return None
 
 def get_distance_km(from_coords, to_coords):
@@ -138,8 +160,6 @@ def view_orders(request):
     for item in menu_items:
         product_to_restaurants[item.product_id].add(item.restaurant)
 
-    address_coords_cache = {}
-
     orders_with_available_restaurants = []
     for order in orders:
         order_product_ids = [item.product_id for item in order.items.all()]
@@ -150,21 +170,12 @@ def view_orders(request):
             available_restaurants = set()
 
         delivery_address = order.address
-        if delivery_address in address_coords_cache:
-            order_coords = address_coords_cache[delivery_address]
-        else:
-            order_coords = fetch_coordinates(YANDEX_GEOCODER_API_KEY, delivery_address)
-            address_coords_cache[delivery_address] = order_coords
+        order_coords = fetch_coordinates_cached(YANDEX_GEOCODER_API_KEY, delivery_address)
 
         restaurant_distances = []
         for restaurant in available_restaurants:
             rest_address = restaurant.address
-            if rest_address in address_coords_cache:
-                rest_coords = address_coords_cache[rest_address]
-            else:
-                rest_coords = fetch_coordinates(YANDEX_GEOCODER_API_KEY, rest_address)
-                address_coords_cache[rest_address] = rest_coords
-
+            rest_coords = fetch_coordinates_cached(YANDEX_GEOCODER_API_KEY, rest_address)
             dist = get_distance_km(order_coords, rest_coords)
             restaurant_distances.append((restaurant, dist))
 
