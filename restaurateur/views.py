@@ -86,6 +86,7 @@ def view_restaurants(request):
 def view_orders(request):
     orders = (
         Order.objects.with_total_price()
+        .exclude(status='completed')
         .prefetch_related(
             Prefetch('items', queryset=OrderItem.objects.select_related('product'))
         )

@@ -102,8 +102,9 @@ class ProductCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['firstname', 'lastname', 'phonenumber', 'address', 'created_at']
+    list_display = ['id', 'firstname', 'lastname', 'phonenumber', 'address', 'status', 'created_at']
     search_fields = ['firstname', 'lastname', 'phonenumber', 'address']
+    list_filter = ['status']
     inlines = [OrderItemInline]
 
     def response_change(self, request, obj):

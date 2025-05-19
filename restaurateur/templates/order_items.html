@@ -19,9 +19,11 @@
       <th>Адрес доставки</th>
       <th>Товары</th>
       <th>Сумма</th>
-      <th>Действия</th> 
+      <th>Статус</th>
+      <th>Действия</th>
     </tr>
     {% for order in orders %}
+      {% if order.status != "completed" %}
       <tr>
         <td>{{ order.id }}</td>
         <td>{{ order.firstname }} {{ order.lastname }}</td>
@@ -38,9 +40,13 @@
             <strong>{{ order.total_price }} ₽</strong>
         </td>
         <td>
+            {{ order.get_status_display }}
+        </td>
+        <td>
             <a href="{% url 'admin:foodcartapp_order_change' order.id %}?next={{ request.path|urlencode }}" target="_blank">Редактировать</a>
         </td>
       </tr>
+      {% endif %}
     {% endfor %}
    </table>
   </div>
