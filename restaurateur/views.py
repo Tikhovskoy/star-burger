@@ -7,9 +7,8 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
-
 from foodcartapp.models import Product, Restaurant
-
+from django.db.models import Prefetch
 
 class Login(forms.Form):
     username = forms.CharField(
@@ -26,7 +25,6 @@ class Login(forms.Form):
             'placeholder': 'Введите пароль'
         })
     )
-
 
 class LoginView(View):
     def get(self, request, *args, **kwargs):
@@ -54,14 +52,11 @@ class LoginView(View):
             'ivalid': True,
         })
 
-
 class LogoutView(auth_views.LogoutView):
     next_page = reverse_lazy('restaurateur:login')
 
-
 def is_manager(user):
     return user.is_staff  # FIXME replace with specific permission
-
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_products(request):
@@ -82,16 +77,22 @@ def view_products(request):
         'restaurants': restaurants,
     })
 
-
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_restaurants(request):
     return render(request, template_name="restaurants_list.html", context={
         'restaurants': Restaurant.objects.all(),
     })
 
-
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
+    from foodcartapp.models import Order, OrderItem
+    orders = (
+        Order.objects
+        .prefetch_related(
+            Prefetch('items', queryset=OrderItem.objects.select_related('product'))
+        )
+        .order_by('-id')
+    )
     return render(request, template_name='order_items.html', context={
-        # TODO заглушка для нереализованного функционала
+        'orders': orders,
     })
