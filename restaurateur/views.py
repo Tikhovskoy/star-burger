@@ -3,12 +3,11 @@ from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import user_passes_test
-
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
-
-from foodcartapp.models import Product, Restaurant
 from django.db.models import Prefetch
+
+from foodcartapp.models import Product, Restaurant, Order, OrderItem
 
 class Login(forms.Form):
     username = forms.CharField(
@@ -85,9 +84,8 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    from foodcartapp.models import Order, OrderItem
     orders = (
-        Order.objects
+        Order.objects.with_total_price()
         .prefetch_related(
             Prefetch('items', queryset=OrderItem.objects.select_related('product'))
         )

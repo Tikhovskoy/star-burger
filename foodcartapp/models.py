@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
-
+from django.db.models import F, Sum, ExpressionWrapper, DecimalField
 
 class Restaurant(models.Model):
     name = models.CharField(
@@ -26,7 +26,6 @@ class Restaurant(models.Model):
     def __str__(self):
         return self.name
 
-
 class ProductQuerySet(models.QuerySet):
     def available(self):
         products = (
@@ -35,7 +34,6 @@ class ProductQuerySet(models.QuerySet):
             .values_list('product')
         )
         return self.filter(pk__in=products)
-
 
 class ProductCategory(models.Model):
     name = models.CharField(
@@ -49,7 +47,6 @@ class ProductCategory(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class Product(models.Model):
     name = models.CharField(
@@ -93,7 +90,6 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-
 class RestaurantMenuItem(models.Model):
     restaurant = models.ForeignKey(
         Restaurant,
@@ -123,6 +119,16 @@ class RestaurantMenuItem(models.Model):
     def __str__(self):
         return f"{self.restaurant.name} - {self.product.name}"
 
+class OrderQuerySet(models.QuerySet):
+    def with_total_price(self):
+        return self.annotate(
+            total_price=Sum(
+                ExpressionWrapper(
+                    F('items__product__price') * F('items__quantity'),
+                    output_field=DecimalField()
+                )
+            )
+        )
 
 class Order(models.Model):
     firstname = models.CharField('Имя', max_length=50)
@@ -131,6 +137,8 @@ class Order(models.Model):
     address = models.CharField('Адрес', max_length=200)
     created_at = models.DateTimeField('Время создания', auto_now_add=True, db_index=True)
 
+    objects = OrderQuerySet.as_manager()
+
     class Meta:
         verbose_name = 'заказ'
         verbose_name_plural = 'заказы'
@@ -138,7 +146,6 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Заказ {self.firstname} {self.lastname} ({self.phonenumber})"
-
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, verbose_name='заказ', related_name='items', on_delete=models.CASCADE)
