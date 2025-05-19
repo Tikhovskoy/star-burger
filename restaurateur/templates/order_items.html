@@ -21,6 +21,10 @@
       <th>Сумма</th>
       <th>Статус</th>
       <th>Комментарий</th>
+      <th>Время создания</th>
+      <th>Время звонка</th>
+      <th>Время доставки</th>
+      <th>Оплата</th>
       <th>Действия</th>
     </tr>
     {% for order in orders %}
@@ -45,6 +49,18 @@
         </td>
         <td>
             {{ order.comment|default:"—" }}
+        </td>
+        <td>
+            {{ order.created_at|date:"d.m.Y H:i" }}
+        </td>
+        <td>
+            {{ order.called_at|date:"d.m.Y H:i" }}
+        </td>
+        <td>
+            {{ order.delivered_at|date:"d.m.Y H:i" }}
+        </td>
+        <td>
+            {{ order.get_payment_method_display }}
         </td>
         <td>
             <a href="{% url 'admin:foodcartapp_order_change' order.id %}?next={{ request.path|urlencode }}" target="_blank">Редактировать</a>

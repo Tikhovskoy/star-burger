@@ -3,6 +3,7 @@ from django.shortcuts import reverse, redirect
 from django.templatetags.static import static
 from django.utils.html import format_html
 from django.utils.http import url_has_allowed_host_and_scheme
+
 from .models import (
     Product, ProductCategory, Restaurant, RestaurantMenuItem,
     Order, OrderItem,
@@ -102,9 +103,12 @@ class ProductCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'firstname', 'lastname', 'phonenumber', 'address', 'status', 'created_at', 'called_at', 'delivered_at']
+    list_display = [
+        'id', 'firstname', 'lastname', 'phonenumber', 'address',
+        'status', 'payment_method', 'created_at', 'called_at', 'delivered_at'
+    ]
     search_fields = ['firstname', 'lastname', 'phonenumber', 'address']
-    list_filter = ['status']
+    list_filter = ['status', 'payment_method']
     inlines = [OrderItemInline]
     readonly_fields = ['created_at']
 
@@ -120,5 +124,5 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ['order', 'product', 'quantity']
+    list_display = ['order', 'product', 'quantity', 'price']
     search_fields = ['order__firstname', 'order__lastname', 'product__name']

@@ -9,6 +9,7 @@ from django.db.models import Prefetch
 
 from foodcartapp.models import Product, Restaurant, Order, OrderItem
 
+
 class Login(forms.Form):
     username = forms.CharField(
         label='Логин', max_length=75, required=True,
@@ -24,6 +25,7 @@ class Login(forms.Form):
             'placeholder': 'Введите пароль'
         })
     )
+
 
 class LoginView(View):
     def get(self, request, *args, **kwargs):
@@ -51,11 +53,14 @@ class LoginView(View):
             'ivalid': True,
         })
 
+
 class LogoutView(auth_views.LogoutView):
     next_page = reverse_lazy('restaurateur:login')
 
+
 def is_manager(user):
     return user.is_staff
+
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_products(request):
@@ -76,11 +81,13 @@ def view_products(request):
         'restaurants': restaurants,
     })
 
+
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_restaurants(request):
     return render(request, template_name="restaurants_list.html", context={
         'restaurants': Restaurant.objects.all(),
     })
+
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
