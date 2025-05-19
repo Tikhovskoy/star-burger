@@ -20,6 +20,7 @@
       <th>Товары</th>
       <th>Сумма</th>
       <th>Статус</th>
+      <th>Комментарий</th>
       <th>Действия</th>
     </tr>
     {% for order in orders %}
@@ -41,6 +42,9 @@
         </td>
         <td>
             {{ order.get_status_display }}
+        </td>
+        <td>
+            {{ order.comment|default:"—" }}
         </td>
         <td>
             <a href="{% url 'admin:foodcartapp_order_change' order.id %}?next={{ request.path|urlencode }}" target="_blank">Редактировать</a>

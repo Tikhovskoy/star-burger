@@ -122,6 +122,7 @@ class Order(models.Model):
         default='pending',
         db_index=True
     )
+    comment = models.TextField('Комментарий', blank=True)
     created_at = models.DateTimeField('Время создания', auto_now_add=True, db_index=True)
 
     objects = OrderQuerySet.as_manager()
