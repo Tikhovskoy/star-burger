@@ -105,7 +105,7 @@ class ProductCategoryAdmin(admin.ModelAdmin):
 class OrderAdmin(admin.ModelAdmin):
     list_display = [
         'id', 'firstname', 'lastname', 'phonenumber', 'address',
-        'status', 'payment_method', 'created_at', 'called_at', 'delivered_at'
+        'status', 'payment_method', 'created_at', 'called_at', 'delivered_at', 'restaurant'
     ]
     search_fields = ['firstname', 'lastname', 'phonenumber', 'address']
     list_filter = ['status', 'payment_method']

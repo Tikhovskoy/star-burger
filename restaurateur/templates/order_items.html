@@ -6,7 +6,6 @@
   <center>
     <h2>Необработанные заказы</h2>
   </center>
-
   <hr/>
   <br/>
   <br/>
@@ -25,9 +24,11 @@
       <th>Время звонка</th>
       <th>Время доставки</th>
       <th>Оплата</th>
+      <th>Рестораны</th>
       <th>Действия</th>
     </tr>
-    {% for order in orders %}
+    {% for info in orders_with_available_restaurants %}
+      {% with order=info.order available_restaurants=info.available_restaurants %}
       {% if order.status != "completed" %}
       <tr>
         <td>{{ order.id }}</td>
@@ -63,10 +64,29 @@
             {{ order.get_payment_method_display }}
         </td>
         <td>
+            {% if order.restaurant %}
+                <b>Выбран: {{ order.restaurant.name }}</b>
+            {% else %}
+                <details>
+                  <summary>Какие рестораны могут приготовить?</summary>
+                  {% if available_restaurants %}
+                    <ul>
+                        {% for rest in available_restaurants %}
+                            <li>{{ rest.name }}</li>
+                        {% endfor %}
+                    </ul>
+                  {% else %}
+                    <b style="color:red;">Нет ресторанов для сборки заказа</b>
+                  {% endif %}
+                </details>
+            {% endif %}
+        </td>
+        <td>
             <a href="{% url 'admin:foodcartapp_order_change' order.id %}?next={{ request.path|urlencode }}" target="_blank">Редактировать</a>
         </td>
       </tr>
       {% endif %}
+      {% endwith %}
     {% endfor %}
    </table>
   </div>
