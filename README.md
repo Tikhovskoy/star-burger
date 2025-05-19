@@ -151,7 +151,7 @@ Parcel будет следить за файлами в каталоге `bundle
 
 ```
 
-YANDEX\_GEOCODER\_API\_KEY=ваш\_ключ
+YANDEX_GEOCODER_API_KEY=ваш_ключ
 
 ```
 
