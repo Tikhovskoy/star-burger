@@ -1,4 +1,6 @@
 from collections import defaultdict
+import requests
+from geopy.distance import distance
 from django import forms
 from django.shortcuts import redirect, render
 from django.views import View
@@ -7,8 +9,38 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 from django.db.models import Prefetch
+from django.conf import settings
 
 from foodcartapp.models import Product, Restaurant, Order, OrderItem, RestaurantMenuItem
+
+YANDEX_GEOCODER_API_KEY = getattr(settings, "YANDEX_GEOCODER_API_KEY", None)
+YANDEX_GEOCODER_URL = 'https://geocode-maps.yandex.ru/1.x/'
+
+def fetch_coordinates(api_key, address):
+    """Вернуть координаты (lat, lon) или None, если не удалось"""
+    params = {
+        'apikey': api_key,
+        'geocode': address,
+        'format': 'json'
+    }
+    try:
+        response = requests.get(YANDEX_GEOCODER_URL, params=params, timeout=2)
+        response.raise_for_status()
+        places = response.json()['response']['GeoObjectCollection']['featureMember']
+        if not places:
+            return None
+        lon, lat = map(float, places[0]['GeoObject']['Point']['pos'].split())
+        return lat, lon
+    except Exception:
+        return None
+
+def get_distance_km(from_coords, to_coords):
+    if from_coords is None or to_coords is None:
+        return None
+    try:
+        return distance(from_coords, to_coords).km
+    except Exception:
+        return None
 
 
 class Login(forms.Form):
@@ -106,18 +138,45 @@ def view_orders(request):
     for item in menu_items:
         product_to_restaurants[item.product_id].add(item.restaurant)
 
+    address_coords_cache = {}
+
     orders_with_available_restaurants = []
     for order in orders:
         order_product_ids = [item.product_id for item in order.items.all()]
-        restaurant_sets = [product_to_restaurants[pid] for pid in order_product_ids]
+        restaurant_sets = [product_to_restaurants.get(pid, set()) for pid in order_product_ids]
         if restaurant_sets:
             available_restaurants = set.intersection(*restaurant_sets)
         else:
             available_restaurants = set()
+
+        delivery_address = order.address
+        if delivery_address in address_coords_cache:
+            order_coords = address_coords_cache[delivery_address]
+        else:
+            order_coords = fetch_coordinates(YANDEX_GEOCODER_API_KEY, delivery_address)
+            address_coords_cache[delivery_address] = order_coords
+
+        restaurant_distances = []
+        for restaurant in available_restaurants:
+            rest_address = restaurant.address
+            if rest_address in address_coords_cache:
+                rest_coords = address_coords_cache[rest_address]
+            else:
+                rest_coords = fetch_coordinates(YANDEX_GEOCODER_API_KEY, rest_address)
+                address_coords_cache[rest_address] = rest_coords
+
+            dist = get_distance_km(order_coords, rest_coords)
+            restaurant_distances.append((restaurant, dist))
+
+        sorted_restaurants = sorted(
+            restaurant_distances,
+            key=lambda r: r[1] if r[1] is not None else 1e9
+        )
+
         orders_with_available_restaurants.append(
             {
                 'order': order,
-                'available_restaurants': available_restaurants,
+                'restaurants': sorted_restaurants,
             }
         )
 

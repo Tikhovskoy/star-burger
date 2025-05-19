@@ -3,20 +3,45 @@
 {% block title %}Необработанные заказы | Star Burger{% endblock %}
 
 {% block content %}
+  <style>
+    .order-table th, .order-table td {
+        vertical-align: middle !important;
+        text-align: center;
+        font-size: 15px;
+        padding: 7px 4px;
+    }
+    .order-table th {
+        background: #f7f7f7;
+        font-weight: 500;
+    }
+    .order-table td.comment-cell {
+        text-align: left;
+        max-width: 160px;
+        word-break: break-word;
+        font-size: 13px;
+    }
+    .order-table td {
+        white-space: normal;
+    }
+    .order-table .chosen-restaurant {
+        font-weight: 600;
+        color: #1d3557;
+    }
+    details summary {
+        cursor: pointer;
+    }
+  </style>
   <center>
-    <h2>Необработанные заказы</h2>
+    <h2 style="margin-top: 15px;">Необработанные заказы</h2>
   </center>
   <hr/>
-  <br/>
-  <br/>
-  <div class="container">
-   <table class="table table-responsive">
+  <div class="container" style="margin-top: 20px;">
+   <table class="table table-bordered table-striped order-table">
     <tr>
       <th>ID заказа</th>
       <th>Клиент</th>
       <th>Телефон</th>
       <th>Адрес доставки</th>
-      <th>Товары</th>
       <th>Сумма</th>
       <th>Статус</th>
       <th>Комментарий</th>
@@ -28,7 +53,7 @@
       <th>Действия</th>
     </tr>
     {% for info in orders_with_available_restaurants %}
-      {% with order=info.order available_restaurants=info.available_restaurants %}
+      {% with order=info.order restaurants=info.restaurants %}
       {% if order.status != "completed" %}
       <tr>
         <td>{{ order.id }}</td>
@@ -36,19 +61,12 @@
         <td>{{ order.phonenumber }}</td>
         <td>{{ order.address }}</td>
         <td>
-            <ul>
-                {% for item in order.items.all %}
-                    <li>{{ item.product.name }} ×{{ item.quantity }} по {{ item.price }} ₽</li>
-                {% endfor %}
-            </ul>
-        </td>
-        <td>
             <strong>{{ order.total_price }} ₽</strong>
         </td>
         <td>
             {{ order.get_status_display }}
         </td>
-        <td>
+        <td class="comment-cell">
             {{ order.comment|default:"—" }}
         </td>
         <td>
@@ -65,14 +83,21 @@
         </td>
         <td>
             {% if order.restaurant %}
-                <b>Выбран: {{ order.restaurant.name }}</b>
+                <span class="chosen-restaurant">Выбран: {{ order.restaurant.name }}</span>
             {% else %}
                 <details>
                   <summary>Какие рестораны могут приготовить?</summary>
-                  {% if available_restaurants %}
-                    <ul>
-                        {% for rest in available_restaurants %}
-                            <li>{{ rest.name }}</li>
+                  {% if restaurants %}
+                    <ul style="padding-left:14px;">
+                        {% for rest, dist in restaurants %}
+                            <li>
+                                {{ rest.name }}
+                                {% if dist %}
+                                    — {{ dist|floatformat:1 }} км
+                                {% else %}
+                                    — расстояние не определено
+                                {% endif %}
+                            </li>
                         {% endfor %}
                     </ul>
                   {% else %}
