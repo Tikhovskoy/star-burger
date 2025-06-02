@@ -6,13 +6,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('foodcartapp', '0039_orderitem_price'),
+        ("foodcartapp", "0039_orderitem_price"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='status',
-            field=models.CharField(choices=[('pending', 'Не обработан'), ('confirmed', 'Подтверждён'), ('assembled', 'Собран'), ('delivering', 'В доставке'), ('completed', 'Завершён')], db_index=True, default='pending', max_length=20, verbose_name='Статус'),
+            model_name="order",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("pending", "Не обработан"),
+                    ("confirmed", "Подтверждён"),
+                    ("assembled", "Собран"),
+                    ("delivering", "В доставке"),
+                    ("completed", "Завершён"),
+                ],
+                db_index=True,
+                default="pending",
+                max_length=20,
+                verbose_name="Статус",
+            ),
         ),
     ]

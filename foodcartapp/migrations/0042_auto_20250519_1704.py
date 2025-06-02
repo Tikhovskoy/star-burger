@@ -6,18 +6,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('foodcartapp', '0041_order_comment'),
+        ("foodcartapp", "0041_order_comment"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='called_at',
-            field=models.DateTimeField(blank=True, db_index=True, null=True, verbose_name='Время звонка менеджера'),
+            model_name="order",
+            name="called_at",
+            field=models.DateTimeField(
+                blank=True,
+                db_index=True,
+                null=True,
+                verbose_name="Время звонка менеджера",
+            ),
         ),
         migrations.AddField(
-            model_name='order',
-            name='delivered_at',
-            field=models.DateTimeField(blank=True, db_index=True, null=True, verbose_name='Время доставки'),
+            model_name="order",
+            name="delivered_at",
+            field=models.DateTimeField(
+                blank=True, db_index=True, null=True, verbose_name="Время доставки"
+            ),
         ),
     ]

@@ -6,13 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('foodcartapp', '0042_auto_20250519_1704'),
+        ("foodcartapp", "0042_auto_20250519_1704"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='payment_method',
-            field=models.CharField(choices=[('cash', 'Наличные курьеру'), ('card', 'Картой онлайн')], db_index=True, default='cash', max_length=10, verbose_name='Способ оплаты'),
+            model_name="order",
+            name="payment_method",
+            field=models.CharField(
+                choices=[("cash", "Наличные курьеру"), ("card", "Картой онлайн")],
+                db_index=True,
+                default="cash",
+                max_length=10,
+                verbose_name="Способ оплаты",
+            ),
         ),
     ]
