@@ -1,7 +1,7 @@
 from django.db import transaction
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
-from rest_framework.validators import MinLengthValidator
+from django.core.validators import MinLengthValidator
 
 from .models import Order, OrderItem, Product
 
