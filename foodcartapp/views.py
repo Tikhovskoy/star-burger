@@ -8,10 +8,13 @@ from rest_framework.views import APIView
 
 from .models import Product
 from .serializers import OrderSerializer
+from django.http import HttpResponse
+
 
 
 def trigger_error(request):
-    division_by_zero = 1 / 0
+    1 / 0
+    return HttpResponse("never reached")
 
 def banners_list_api(request):
     # FIXME move data to db?
