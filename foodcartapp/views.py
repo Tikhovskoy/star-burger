@@ -10,6 +10,9 @@ from .models import Product
 from .serializers import OrderSerializer
 
 
+def trigger_error(request):
+    division_by_zero = 1 / 0
+
 def banners_list_api(request):
     # FIXME move data to db?
     return JsonResponse(
