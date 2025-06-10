@@ -1,6 +1,8 @@
 import os
 
 import dj_database_url
+import rollbar
+import rollbar.contrib.django.middleware.RollbarNotifierMiddleware as RollbarMiddleware
 
 from environs import Env
 
@@ -35,6 +37,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -127,3 +130,13 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "assets"),
     os.path.join(BASE_DIR, "bundles"),
 ]
+
+ROLLBAR = {
+    'access_token': os.getenv('ROLLBAR_TOKEN', ''),
+    'environment': os.getenv('ROLLBAR_ENVIRONMENT', 'development'),
+    'branch': os.getenv('ROLLBAR_BRANCH', 'local'),
+    'root': BASE_DIR,
+}
+
+if ROLLBAR['access_token']:
+    rollbar.init(**ROLLBAR)
