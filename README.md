@@ -172,6 +172,51 @@ YANDEX_GEOCODER_API_KEY=ваш_ключ
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте.
 - `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
 
+## Мониторинг ошибок через Rollbar
+
+Для отслеживания исключений в production-окружении используется [Rollbar](https://rollbar.com/).
+
+### Переменные окружения
+
+Добавьте в `.env`:
+
+```ini
+ROLLBAR_TOKEN=ваш_токен_от_post_server_item
+ROLLBAR_ENV=production
+````
+
+---
+
+### Настройка Django
+
+В `settings.py`:
+
+```python
+ROLLBAR = {
+    'access_token': env('ROLLBAR_TOKEN'),
+    'environment': env('ROLLBAR_ENV', default='development'),
+    'root': BASE_DIR,
+}
+if ROLLBAR['access_token']:
+    rollbar.init(**ROLLBAR)
+```
+
+И добавьте в `MIDDLEWARE`:
+
+```python
+'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
+```
+
+---
+
+### Проверка
+
+Создайте временную вьюху `1 / 0`, откройте её в браузере — убедитесь, что ошибка появляется в интерфейсе Rollbar и помечена как `production`.
+
+После проверки — удалите тестовую вьюху.
+
+---
+
 ## Цели проекта
 
 Код написан в учебных целях — это урок в курсе по Python и веб-разработке на сайте [Devman](https://dvmn.org). За основу был взят код проекта [FoodCart](https://github.com/Saibharath79/FoodCart).

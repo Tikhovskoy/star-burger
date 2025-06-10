@@ -132,9 +132,9 @@ STATICFILES_DIRS = [
 ]
 
 ROLLBAR = {
-    'access_token': os.getenv('ROLLBAR_TOKEN', ''),
-    'environment': os.getenv('ROLLBAR_ENVIRONMENT', 'development'),
-    'branch': os.getenv('ROLLBAR_BRANCH', 'local'),
+    'access_token': env.str('ROLLBAR_TOKEN', default=''),
+    'environment': env.str('ROLLBAR_ENVIRONMENT', default='development'),
+    'branch': env.str('ROLLBAR_BRANCH', default='local'),
     'root': BASE_DIR,
 }
 
