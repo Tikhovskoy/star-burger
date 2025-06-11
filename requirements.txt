@@ -4,7 +4,7 @@ django-debug-toolbar==3.2.4
 django-cache-url==3.4.5
 dj-database-url==2.2.0
 dj-email-url==1.0.6
-django-phonenumber-field==8.1.0
+django-phonenumber-field==7.1.0
 phonenumbers==9.0.5
 Pillow==8.2.0
 requests==2.32.3
