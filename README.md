@@ -59,11 +59,39 @@ pip install -r requirements.txt
 SECRET_KEY=django-insecure-0if40nf4nf93n4
 ```
 
-Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
+Выполните миграции и создайте таблицы в базе данных:
 
 ```sh
 python manage.py migrate
+````
+
+Перед этим убедитесь, что у вас запущен сервер PostgreSQL и созданы:
+
+* база данных (например, `starburger`)
+* пользователь (например, `starburgeruser`) с правами `ALL PRIVILEGES ON DATABASE starburger`
+* файл `.env` с настройками подключения к БД:
+
+```ini
+DATABASE_URL=postgres://starburgeruser:пароль@localhost:5432/starburger
 ```
+
+---
+
+Если вы переносите старые данные из SQLite, выполните:
+
+```sh
+python manage.py loaddata data.json
+````
+
+Файл `data.json` должен быть заранее создан с помощью:
+
+```sh
+python manage.py dumpdata > data.json
+```
+
+(выполняется **до** перехода на PostgreSQL)
+
+``````
 
 Запустите сервер:
 
@@ -147,13 +175,16 @@ Parcel будет следить за файлами в каталоге `bundle
 
 ### Необходимые переменные окружения
 
-В `.env` должен быть указан ключ для Яндекс Геокодера:
-
-```
-
-YANDEX_GEOCODER_API_KEY=ваш_ключ
-
-```
+```ini
+SECRET_KEY=...
+DEBUG=False
+ALLOWED_HOSTS=127.0.0.1,localhost,158.160.80.113
+YANDEX_GEOCODER_API_KEY=...
+ROLLBAR_TOKEN=...
+ROLLBAR_ENV=production
+ROLLBAR_BRANCH=main
+DATABASE_URL=postgres://starburgeruser:пароль@localhost:5432/starburger
+````
 
 Ключ можно получить в [Яндекс.Облаке, сервис Geocoder API](https://developer.tech.yandex.ru/services/).
 
