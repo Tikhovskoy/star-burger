@@ -91,8 +91,6 @@ python manage.py dumpdata > data.json
 
 (выполняется **до** перехода на PostgreSQL)
 
-``````
-
 Запустите сервер:
 
 ```sh
