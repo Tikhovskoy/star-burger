@@ -280,3 +280,5 @@ if ROLLBAR['access_token']:
 Где используется репозиторий:
 
 - Второй и третий урок [учебного курса Django](https://dvmn.org/modules/django/)
+
+тест ролбар
