@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: star_burger
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+    restart: unless-stopped
+
+  frontend:
+    image: node:16
+    working_dir: /app
+    volumes:
+      - .:/app
+      - ./bundles:/app/bundles
+    restart: "no"
+
+volumes:
+  postgres_data:

@@ -1,0 +1,7 @@
+services:
+  web:
+    command: ./backend/entrypoint.sh
+    ports: []
+
+  frontend:
+    command: npm run build

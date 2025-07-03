@@ -189,81 +189,52 @@ DATABASE_URL=postgres://starburgeruser:пароль@localhost:5432/starburger
 
 ## Как запустить prod-версию сайта
 
-Собрать фронтенд:
+Перед деплоем убедитесь, что:
 
-```sh
-./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
-```
+* на сервере установлен Docker и Docker Compose;
+* сервер доступен по SSH;
+* переменные окружения настроены в `.env` на сервере.
 
-Настроить бэкенд: создать файл `.env` в каталоге `star_burger/` со следующими настройками:
+### 1. Выполните деплой
 
-- `DEBUG` — дебаг-режим. Поставьте `False`.
-- `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте.
-- `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
-
-## Мониторинг ошибок через Rollbar
-
-Для отслеживания исключений в production-окружении используется [Rollbar](https://rollbar.com/).
-
-### Переменные окружения
-
-Добавьте в `.env`:
-
-```ini
-ROLLBAR_TOKEN=ваш_токен_от_post_server_item
-ROLLBAR_ENV=production
-````
-
----
-
-### Настройка Django
-
-В `settings.py`:
-
-```python
-ROLLBAR = {
-    'access_token': env('ROLLBAR_TOKEN'),
-    'environment': env('ROLLBAR_ENV', default='development'),
-    'root': BASE_DIR,
-}
-if ROLLBAR['access_token']:
-    rollbar.init(**ROLLBAR)
-```
-
-И добавьте в `MIDDLEWARE`:
-
-```python
-'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
-```
-
----
-
-### Проверка
-
-Создайте временную вьюху `1 / 0`, откройте её в браузере — убедитесь, что ошибка появляется в интерфейсе Rollbar и помечена как `production`.
-
-После проверки — удалите тестовую вьюху.
-
----
-
-## Как обновить код на сервере
-
-1. Зайдите на сервер по SSH
-2. Перейдите в домашнюю директорию
-3. Запустите скрипт:
+С локальной машины выполните:
 
 ```bash
-./deploy_star_burger.sh
-````
+./deploy.sh
+```
 
-Скрипт выполнит:
+Скрипт выполнит следующие действия:
 
-* обновление кода из GitHub
-* установку зависимостей Python и Node.js
-* сборку фронтенда
-* сборку статики Django
-* применение миграций
-* перезапуск Gunicorn
+* упакует проект в архив (исключая `.env`, `media`, `node_modules`);
+* скопирует архив на сервер;
+* развернёт проект в `/opt/star-burger`;
+* перенесёт `.env` и папку `media/` из предыдущей версии;
+* выполнит миграции и сборку статики через `entrypoint.sh`;
+* пересоздаст контейнеры через Docker Compose (используется `docker-compose.prod.yml`).
+
+### 2. Настройка окружения на сервере
+
+Файл `.env` на сервере должен содержать:
+
+```ini
+DEBUG=False
+SECRET_KEY=секретный_ключ
+ALLOWED_HOSTS=ваш_домен или IP
+DATABASE_URL=postgres://user:password@localhost:5432/starburger
+YANDEX_GEOCODER_API_KEY=ваш_ключ
+ROLLBAR_TOKEN=ваш_токен
+ROLLBAR_ENV=production
+ROLLBAR_BRANCH=master
+```
+
+### 3. Убедитесь, что всё работает
+
+После деплоя:
+
+* сайт должен быть доступен по адресу вашего домена;
+* Django-админка открывается;
+* `Rollbar` фиксирует ошибки;
+* команды `docker compose ps` и `docker compose logs` работают корректно на сервере.
 
 ---
 
