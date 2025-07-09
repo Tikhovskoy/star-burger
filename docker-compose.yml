@@ -1,0 +1,30 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: starburger_backend
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app
+      - ./media:/app/media
+      - ./bundles:/app/bundles
+      - ./assets:/app/assets
+      - ./staticfiles:/app/star_burger/staticfiles
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:14
+    container_name: starburger_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

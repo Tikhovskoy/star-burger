@@ -12,5 +12,9 @@
   },
   "devDependencies": {
     "@babel/core": "^7.17.8"
+  },
+  "scripts": {
+    "dev": "parcel watch bundles-src/index.js --dist-dir bundles --public-url /static/",
+    "build": "parcel build bundles-src/index.js --dist-dir bundles --public-url /static/"
   }
 }
