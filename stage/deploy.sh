@@ -4,7 +4,7 @@ set -e
 echo "Деплой Star Burger"
 
 echo "Шаг 1. Сборка фронтенда (Parcel)"
-docker build -t starburger-frontend -f frontend/Dockerfile .
+docker build -t starburger-frontend -f ./frontend/Dockerfile ./frontend
 
 echo "Шаг 2. Копируем бандлы в bundles/"
 docker rm -f frontend-temp || true

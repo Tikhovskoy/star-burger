@@ -37,7 +37,7 @@ python --version
 ```
 **Важно!** Версия Python должна быть не ниже 3.6.
 
-Возможно, вместо команды `python` здесь и в остальных инструкциях этого README придётся использовать `python3`. Зависит это от операционной системы и от того, установлен ли у вас Python старой второй версии. 
+Возможно, вместо команды `python` здесь и в остальных инструкциях этого README придётся использовать `python3`. Зависит это от операционной системы и от того, установлен ли у вас Python старой второй версии.
 
 В каталоге проекта создайте виртуальное окружение:
 ```sh
@@ -161,8 +161,8 @@ Parcel будет следить за файлами в каталоге `bundle
 
 ## Работа с координатами и кэшированием геокодера
 
-Сайт рассчитывает расстояние между адресом доставки и ресторанами для удобства менеджера.  
-Чтобы сайт не делал много медленных сетевых запросов к Яндекс Геокодеру, координаты всех новых адресов сохраняются в отдельную таблицу `PlaceCoordinate` (приложение `locations`).  
+Сайт рассчитывает расстояние между адресом доставки и ресторанами для удобства менеджера.
+Чтобы сайт не делал много медленных сетевых запросов к Яндекс Геокодеру, координаты всех новых адресов сохраняются в отдельную таблицу `PlaceCoordinate` (приложение `locations`).
 Если координаты по адресу уже получены, сайт использует их из базы данных — страница заказов работает быстро даже при большом количестве заказов.
 
 ### Как это работает:
@@ -266,6 +266,92 @@ if ROLLBAR['access_token']:
 * перезапуск Gunicorn
 
 ---
+
+## Как запустить dev-версию с Docker Compose
+
+```bash
+docker compose build
+docker compose up -d
+```
+
+Контейнеры:
+
+* `backend` — Django (runserver)
+* `frontend` — Parcel (watch)
+* `db` — PostgreSQL
+* `nginx` — отдаёт `/static/`, `/media/`, проксирует на backend
+
+Медиа и статика монтируются:
+
+* `./media/`
+* `./staticfiles/`
+* `./bundles/`
+
+Проверка:
+
+```bash
+curl -I http://localhost
+curl -I http://localhost/static/index.css
+```
+
+---
+
+## Запуск stage-окружения
+
+```bash
+bash stage/deploy.sh
+```
+
+Этот скрипт:
+
+* Собирает фронтенд в Docker (Parcel)
+* Копирует бандлы в `bundles/`
+* Запускает `collectstatic` и `migrate`
+* Стартует контейнеры через `stage/docker-compose.yml`
+
+Проверить:
+
+```bash
+curl -I http://localhost
+```
+
+---
+
+## Продакшен-деплой (на сервере)
+
+```bash
+bash production/deploy.sh
+```
+
+Действия скрипта:
+
+* Сборка фронта (Parcel)
+* `collectstatic`
+* `migrate`
+* `docker-compose up` из `production/docker-compose.yml`
+
+После этого сайт доступен по адресу сервера. Медиа и статика не теряются после перезапуска.
+
+---
+
+## Переменные окружения
+
+Файл .env должен быть доступен при сборке и запуске — stage и production, где переменные окружения используются для миграций, сборки статики и запуска контейнеров.
+
+```ini
+POSTGRES_DB=<your_postgres_db>
+POSTGRES_USER=<your_postgres_user>
+POSTGRES_PASSWORD=<your_postgres_password>
+DEBUG=False
+SECRET_KEY=<your_secret_key>
+YANDEX_GEOCODER_API_KEY=<your_yandex_api_key>
+ROLLBAR_TOKEN=<your_rollbar_token>
+ROLLBAR_ENV=production
+ROLLBAR_BRANCH=main
+ALLOWED_HOSTS=127.0.0.1,localhost,<your_domain>
+DATABASE_URL=postgres://<user>:<password>@db:5432/<dbname>
+```
+
 
 ## Продакшен
 

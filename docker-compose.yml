@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   backend:
     build:
@@ -10,7 +12,7 @@ services:
       - ./media:/app/media
       - ./bundles:/app/bundles
       - ./assets:/app/assets
-      - ./staticfiles:/app/star_burger/staticfiles
+      - ./staticfiles:/app/staticfiles
     ports:
       - "8000:8000"
     depends_on:
@@ -26,5 +28,27 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  frontend:
+    build:
+      context: ./frontend
+    container_name: starburger_frontend
+    volumes:
+      - ./frontend/bundles-src:/app/bundles-src
+      - ./bundles:/app/bundles
+    command: ["npx", "parcel", "watch", "bundles-src/index.js", "--dist-dir", "../bundles", "--public-url", "/static/"]
+
+  nginx:
+    image: nginx:1.21
+    container_name: starburger_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./staticfiles:/var/www/static
+      - ./media:/var/www/media
+      - ./production/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
+  staticfiles:
