@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:14
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  backend:
+    build:
+      context: ../backend
+    command: gunicorn star_burger.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ../media:/app/media
+      - staticfiles:/app/star_burger/staticfiles
+      - ../bundles:/app/bundles
+    env_file:
+      - .env
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+
+  nginx:
+    image: nginx:1.29-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - staticfiles:/staticfiles:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../media:/media:ro
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  staticfiles:
